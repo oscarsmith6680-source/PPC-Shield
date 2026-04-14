@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 
 export default function Contact() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -10,6 +12,7 @@ export default function Contact() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null)
+  const [submitError, setSubmitError] = useState('')
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -64,23 +67,55 @@ export default function Contact() {
 
     setIsSubmitting(true)
     setSubmitStatus(null)
+    setSubmitError('')
 
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false)
+    const apiUrl = `${router.basePath || ''}/api/contact`
+
+    try {
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          message: formData.message.trim(),
+        }),
+      })
+
+      let data = {}
+      try {
+        data = await res.json()
+      } catch {
+        // non-JSON response
+      }
+
+      if (!res.ok || !data.success) {
+        setSubmitStatus('error')
+        setSubmitError(
+          typeof data.error === 'string'
+            ? data.error
+            : 'Could not send your message. Please try again.'
+        )
+        return
+      }
+
       setSubmitStatus('success')
       setFormData({
         name: '',
         email: '',
         phone: '',
-        message: ''
+        message: '',
       })
-      
-      // Reset status after 5 seconds
-      setTimeout(() => {
-        setSubmitStatus(null)
-      }, 5000)
-    }, 1500)
+      setTimeout(() => setSubmitStatus(null), 5000)
+    } catch {
+      setSubmitStatus('error')
+      setSubmitError(
+        'Network error. Check your connection, or the server may be unavailable.'
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const contactInfo = [
@@ -248,7 +283,12 @@ export default function Contact() {
                           <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                         </svg>
-                        Thank you! Your message has been sent successfully. We'll get back to you soon.
+                        Thank you! Your message has been sent successfully. We&apos;ll get back to you soon.
+                      </div>
+                    )}
+                    {submitStatus === 'error' && submitError && (
+                      <div className="alert alert-danger mt-3" role="alert">
+                        {submitError}
                       </div>
                     )}
                   </div>

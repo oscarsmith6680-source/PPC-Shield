@@ -1,16 +1,11 @@
 /** @type {import('next').NextConfig} */
-// Only use basePath and assetPrefix for production builds (deployment)
-// For local development (npm run dev), these should be empty
-const isDev = process.env.NODE_ENV === 'development'
+// Vercel / normal host: leave NEXT_PUBLIC_BASE_PATH unset → site at /
+// Subfolder only (e.g. example.com/ppc-shield): set NEXT_PUBLIC_BASE_PATH=/ppc-shield in env, then rebuild
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
 const nextConfig = {
   reactStrictMode: true,
-  output: 'export',
-  // Only set basePath for production builds, not for local dev
-  ...(isDev ? {} : {
-    basePath: '/ppc-shield',
-    assetPrefix: '/ppc-shield',
-  }),
+  ...(basePath ? { basePath, assetPrefix: basePath } : {}),
   images: {
     unoptimized: true,
     domains: ['images.unsplash.com'],
