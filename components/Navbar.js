@@ -64,7 +64,7 @@ export default function Navbar() {
             </li>
             <li className="nav-item ms-3">
               <a className="btn btn-gradient" href={createPath("contact", basePath)}>
-                Connect With Experts
+                Schedule a Demo
               </a>
             </li>
           </ul>
